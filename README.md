@@ -47,8 +47,43 @@ Ikuti urutan ini supaya tab **Cloud** bisa menampilkan data.
 
 ### 1) Buat project di Supabase
 
-1. Buka [supabase.com](https://supabase.com), login, **New project**.
-2. Catat **Project URL** dan **anon public key** (Settings → API). Project reference ada di URL, bentuknya `https://<ref>.supabase.co`.
+1. Buka [supabase.com](https://supabase.com), login, lalu **New project** (pilih organisasi, password database, region, dll.).
+2. Tunggu sampai project **Ready**. Setelah itu, baru kamu bisa ambil URL dan API key (langkah di bawah).
+
+#### Cara melihat & menyalin API Key di dashboard Supabase
+
+Supabase tidak menyebut satu tombol “API key” saja — ada **URL project** dan beberapa **kunci** dengan fungsi beda. Ikuti ini supaya tidak salah tempel ke `.env`:
+
+1. **Masuk ke project kamu**  
+   Di dashboard Supabase, klik **nama project** yang mau dipakai (kalau punya banyak project).
+
+2. **Buka menu pengaturan API**  
+   - Klik ikon **Settings** (gerigi / *gear*) di **sidebar kiri** (biasanya paling bawah), **atau**  
+   - Dari menu project, cari **Project Settings** → bagian yang berhubungan dengan **API**.
+
+3. **Buka bagian API / Data API**  
+   Di sidebar pengaturan project, pilih **“API”** atau **“Data API”** (nama bisa sedikit beda tergantung versi tampilan dashboard). Di halaman ini kamu akan melihat informasi koneksi ke backend.
+
+4. **Yang perlu kamu catat untuk project Expo ini**
+
+   | Di dashboard Supabase (istilah umum) | Isi ke file `.env` (lihat `.env.example`) |
+   |--------------------------------------|-------------------------------------------|
+   | **Project URL** — alamat `https://xxxx.supabase.co` | `EXPO_PUBLIC_SUPABASE_URL` |
+   | **anon** / **anon public** — biasanya **JWT** (string panjang diawali `eyJ...`) | `EXPO_PUBLIC_SUPABASE_ANON_KEY` |
+   | *(Opsional)* **Publishable key** — format baru `sb_publishable_...` | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` |
+   | *(Jangan dipakai di app HP)* **Secret key** — `sb_secret_...` | `SUPABASE_SECRET_KEY` (hanya untuk server/skrip admin) |
+
+5. **Kalau ada dua tab kunci (“API Keys” baru vs “Legacy”)**  
+   Dashboard terbaru sering punya tab **Publishable and secret API keys** (format `sb_publishable_...` / `sb_secret_...`) dan tab terpisah untuk **Legacy anon / service_role** (JWT lama). Untuk tab **Cloud** di app ini, yang **wajib** biasanya adalah **Project URL** + **anon (JWT)**. Publishable key opsional kecuali nanti materi atau library kamu mengharuskan format baru itu.
+
+6. **Menyalin dengan aman**  
+   - Klik ikon **salin** (clipboard) di samping nilai, atau blok teks lalu salin.  
+   - **Jangan** share screenshot yang terlihat **secret key** ke forum publik atau tugas yang bisa dibaca semua orang. Untuk tugas LMS, cukup jelaskan bahwa kunci disimpan di `.env` lokal.
+
+7. **Project reference**  
+   Potongan teks di tengah URL (`https://<ini>.supabase.co`) adalah **project reference** — sama dengan yang sering muncul di dalam payload JWT anon. Itu membantu memastikan URL dan anon key dari **project yang sama**.
+
+Setelah URL dan anon key tercatat, lanjut isi **`.env`** (langkah 3 di bawah).
 
 ### 2) Buat tabel `mahasiswa` di SQL Editor
 
@@ -59,7 +94,7 @@ Ikuti urutan ini supaya tab **Cloud** bisa menampilkan data.
 ### 3) Siapkan file `.env` di project lokal
 
 1. Salin **`/.env.example`** jadi **`/.env`** (nama file persis `.env`).
-2. Isi nilai dari dashboard Supabase (URL, anon key, dll.). Contoh nama variabel ada di `.env.example` dan penjelasan singkat di komentar file tersebut.
+2. Isi nilai dari dashboard: **Project URL** dan **anon public key** yang sudah kamu lihat dan salin di **Settings → API** (tabel di langkah **1**). Contoh nama variabel ada di `.env.example` dan penjelasan di komentar file tersebut.
 3. **Jangan** commit file `.env` ke Git — sudah dicatat di `.gitignore`.
 
 ### 4) Install dependency & jalankan app
@@ -109,6 +144,8 @@ npm install
 ```
 
 Tunggu sampai selesai (bisa agak lama pertama kali).
+
+**Library Supabase:** Project ini sudah menyertakan paket **`@supabase/supabase-js`** di **`package.json`**. Kamu **tidak** perlu menjalankan `npm install @supabase/supabase-js` sendiri kalau sudah clone repo terbaru — cukup **`npm install`** seperti di atas, maka library itu ikut terpasang bersama dependency lain. Isi `package.json` itulah yang menentukan apa saja yang di-download ke folder `node_modules/`.
 
 ### 3. (Opsional tapi disarankan untuk tab Cloud) File `.env`
 
@@ -167,6 +204,8 @@ Belajar-EXPO-Pemrograman-Perangkat-Mobile-2/
 ├── doc/                         # Panduan & materi + SQL contoh
 │   ├── PRAKTIKUM_02_Functional_Component.md
 │   ├── PRAKTIKUM_03_CRUD_Login_Logout.md
+│   ├── Panduan_Praktikum_Integrasi_Supabase_Cloud.md  # Langkah A–F, file baru/ubah, checklist
+│   ├── NARASI_LMS_Integrasi_Supabase.md                 # Narasi ringkas untuk posting LMS
 │   └── supabase_mahasiswa.sql   # Skrip SQL untuk buat tabel di Supabase (SQL Editor)
 │
 ├── .env.example                 # Contoh variabel lingkungan (aman di-commit; salin ke .env)
@@ -181,6 +220,7 @@ Belajar-EXPO-Pemrograman-Perangkat-Mobile-2/
 - Ubah **tampilan / query data cloud** → **`app/(tabs)/mahasiswa-cloud.tsx`** dan **`lib/supabase.ts`**
 - Ubah **alur login / logout** → **`app/login.tsx`**, **`app/(tabs)/logout.tsx`**, **`app/_layout.tsx`**
 - Teori **Praktikum 2 & 3** → **`doc/PRAKTIKUM_02_...`** dan **`doc/PRAKTIKUM_03_...`**
+- **Praktikum Supabase / tab Cloud** → **`doc/Panduan_Praktikum_Integrasi_Supabase_Cloud.md`**
 - **Skema database cloud** → jalankan **`doc/supabase_mahasiswa.sql`** di Supabase
 
 ---
@@ -254,7 +294,7 @@ Gunakan checklist ini supaya belajarnya runut:
 - **Expo Router ~6** — navigasi based file (folder `app/` = route)
 - **React 19** & **React Native 0.81** — UI
 - **TypeScript** — typings biar kode lebih aman dan enak dibaca
-- **Supabase (JS client)** — koneksi ke PostgreSQL & API dari app (`@supabase/supabase-js`)
+- **Supabase (JS client)** — paket npm **`@supabase/supabase-js`**; dipakai di `lib/supabase.ts` untuk `createClient(...)`. Terpasang otomatis saat `npm install` karena tercantum di `package.json`.
 
 ---
 
