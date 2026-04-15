@@ -4,6 +4,15 @@ Repo ini berisi **project praktikum** untuk mata kuliah **Pemrograman Perangkat 
 
 ---
 
+## Screenshot
+| Cloud | Modal Edit| After Edit | Modal Tambah | After Tambah |
+|-----------|------------|------------|------------|------------|
+| <img src="assets/Screenshot/Cloud.jpeg" width="400"> | <img src="assets/Screenshot/Modal-Edit.jpeg" width="400"> | <img src="assets/Screenshot/After-Edit.jpeg" width="400"> | <img src="assets/Screenshot/Modal-Tambah.jpeg" width="400"> | <img src="assets/Screenshot/After-Tambah.jpeg" width="400"> |
+
+## Screenshot Database
+| Cloud |  After Edit | Modal Tambah | After Tambah |
+|-----------|------------|------------|------------|------------|
+| <img src="assets/Screenshot/database/Cloud.png" width="400"> | <img src="assets/Screenshot/database/After-Edit.png" width="400"> | <img src="assets/Screenshot/database/After-Tambah.png" width="400"> | 
 ## Isi Repo Ini Apa Saja?
 
 Singkatnya: **satu app Expo** yang saat dibuka selalu tampil **halaman Login** dulu (demo). Setelah tap **Masuk**, kamu masuk ke **tab utama**: Home, Explore, Praktikum, Modul, **Cloud**, dan Logout.

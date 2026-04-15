@@ -1,21 +1,25 @@
 /**
- * mahasiswa-cloud.tsx — Tampilkan tabel public.mahasiswa dari Supabase (read-only).
- * Route: /(tabs)/mahasiswa-cloud
+ * mahasiswa-cloud.tsx — CRUD Mahasiswa via Supabase.
+ * Menjaga desain asli tabel & card dengan tambahan fitur Tambah, Edit, Hapus.
  */
 
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
@@ -34,6 +38,11 @@ export default function MahasiswaCloudScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // --- CRUD States ---
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState({ nim: '', nama: '', prodi: '', kelas: '' });
 
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -76,29 +85,91 @@ export default function MahasiswaCloudScreen() {
     loadData();
   };
 
+  // --- CRUD Logics ---
+  const openModal = (item?: MahasiswaRow) => {
+    if (item) {
+      setEditingId(item.id);
+      setForm({ nim: item.nim, nama: item.nama, prodi: item.prodi, kelas: item.kelas ?? '' });
+    } else {
+      setEditingId(null);
+      setForm({ nim: '', nama: '', prodi: '', kelas: '' });
+    }
+    setModalVisible(true);
+  };
+
+  const saveMahasiswa = async () => {
+    if (!supabase) return;
+    if (!form.nim || !form.nama) {
+      Alert.alert('Error', 'NIM dan Nama tidak boleh kosong.');
+      return;
+    }
+
+    setLoading(true);
+    const { error: saveErr } = editingId
+      ? await supabase.from('mahasiswa').update(form).eq('id', editingId)
+      : await supabase.from('mahasiswa').insert([form]);
+
+    if (saveErr) {
+      Alert.alert('Error', saveErr.message);
+      setLoading(false);
+    } else {
+      setModalVisible(false);
+      loadData();
+    }
+  };
+
+  const deleteMahasiswa = (id: string) => {
+    if (!supabase) return;
+    Alert.alert('Konfirmasi', 'Hapus mahasiswa ini?', [
+      { text: 'Batal', style: 'cancel' },
+      {
+        text: 'Hapus',
+        style: 'destructive',
+        onPress: async () => {
+          const { error: delErr } = await supabase!.from('mahasiswa').delete().eq('id', id);
+          if (delErr) Alert.alert('Error', delErr.message);
+          else loadData();
+        },
+      },
+    ]);
+  };
+
   const configured = isSupabaseConfigured();
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
           styles.content,
-          { paddingHorizontal: padH, paddingBottom: 32 + insets.bottom },
+          { 
+            paddingHorizontal: padH, 
+            paddingBottom: 32 + insets.bottom,
+            // Opsional: Jika masih kurang bawah, gunakan insets.top secara manual
+            // paddingTop: 20 + insets.top 
+          },
         ]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} enabled={configured} />
         }
         showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Data Mahasiswa (Cloud)</Text>
-        <Text style={styles.subtitle}>
-          Data dari tabel <Text style={styles.mono}>public.mahasiswa</Text> di Supabase
-        </Text>
+
+        <View style={styles.headerRowSpace}>
+          <View>
+            <Text style={styles.title}>Data Mahasiswa (Cloud)</Text>
+            <Text style={styles.subtitle}>
+              Data dari tabel <Text style={styles.mono}>public.mahasiswa</Text>
+            </Text>
+          </View>
+          {configured && (
+            <Pressable style={styles.btnAdd} onPress={() => openModal()}>
+              <Ionicons name="add" size={24} color="#fff" />
+            </Pressable>
+          )}
+        </View>
 
         {!configured ? (
-          <Text style={styles.errText}>
-            Tambahkan URL dan anon key ke <Text style={styles.mono}>.env</Text>, lalu restart Expo.
-          </Text>
+          <Text style={styles.errText}>Konfigurasi .env belum ditemukan.</Text>
         ) : null}
 
         {loading && !refreshing ? (
@@ -114,17 +185,21 @@ export default function MahasiswaCloudScreen() {
           <Text style={styles.count}>Total {rows.length} mahasiswa</Text>
         ) : null}
 
-        {!loading && configured && !error && rows.length === 0 ? (
-          <Text style={styles.muted}>Belum ada data. Jalankan SQL di Supabase atau tambah baris lewat Table Editor.</Text>
-        ) : null}
-
+        {/* --- VIEW: CARD (Mobile) --- */}
         {!loading && configured && !error && rows.length > 0 && isNarrow ? (
           <View style={styles.cardList}>
             {rows.map((m, index) => (
               <View key={m.id} style={styles.card}>
-                <View style={styles.cardRow}>
-                  <Text style={styles.cardLabel}>No</Text>
-                  <Text style={styles.cardValue}>{index + 1}</Text>
+                <View style={styles.cardHeaderAction}>
+                  <Text style={styles.cardValueBold}>#{index + 1}</Text>
+                  <View style={styles.actionRow}>
+                    <Pressable style={styles.btnEdit} onPress={() => openModal(m)}>
+                      <Text style={styles.btnEditText}>Edit</Text>
+                    </Pressable>
+                    <Pressable style={styles.btnDelete} onPress={() => deleteMahasiswa(m.id)}>
+                      <Text style={styles.btnDeleteText}>Hapus</Text>
+                    </Pressable>
+                  </View>
                 </View>
                 <View style={styles.cardRow}>
                   <Text style={styles.cardLabel}>NIM</Text>
@@ -147,6 +222,7 @@ export default function MahasiswaCloudScreen() {
           </View>
         ) : null}
 
+        {/* --- VIEW: TABLE (Tablet/Desktop) --- */}
         {!loading && configured && !error && rows.length > 0 && !isNarrow ? (
           <>
             <View style={[styles.row, styles.headerRow]}>
@@ -155,6 +231,9 @@ export default function MahasiswaCloudScreen() {
               <Text style={[styles.cell, styles.cellNama, styles.headerText]}>Nama</Text>
               <Text style={[styles.cell, styles.cellProdi, styles.headerText]}>Prodi</Text>
               <Text style={[styles.cell, styles.cellKelas, styles.headerText]}>Kelas</Text>
+              <View style={styles.cellActionWrapper}>
+                <Text style={styles.headerText}>Aksi</Text>
+              </View>
             </View>
             {rows.map((m, index) => (
               <View key={m.id} style={styles.row}>
@@ -163,6 +242,14 @@ export default function MahasiswaCloudScreen() {
                 <Text style={[styles.cell, styles.cellNama]}>{m.nama}</Text>
                 <Text style={[styles.cell, styles.cellProdi]}>{m.prodi}</Text>
                 <Text style={[styles.cell, styles.cellKelas]}>{m.kelas ?? '—'}</Text>
+                <View style={styles.cellActionWrapper}>
+                  <Pressable style={styles.btnEdit} onPress={() => openModal(m)}>
+                    <Text style={styles.btnEditText}>Edit</Text>
+                  </Pressable>
+                  <Pressable style={styles.btnDelete} onPress={() => deleteMahasiswa(m.id)}>
+                    <Text style={styles.btnDeleteText}>Hapus</Text>
+                  </Pressable>
+                </View>
               </View>
             ))}
           </>
@@ -176,6 +263,49 @@ export default function MahasiswaCloudScreen() {
           </Pressable>
         ) : null}
       </ScrollView>
+
+      {/* --- MODAL FORM --- */}
+      <Modal visible={modalVisible} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{editingId ? 'Edit Data' : 'Tambah Mahasiswa'}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="NIM"
+              value={form.nim}
+              onChangeText={(t) => setForm({ ...form, nim: t })}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Nama"
+              value={form.nama}
+              onChangeText={(t) => setForm({ ...form, nama: t })}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Prodi"
+              value={form.prodi}
+              onChangeText={(t) => setForm({ ...form, prodi: t })}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Kelas"
+              value={form.kelas}
+              onChangeText={(t) => setForm({ ...form, kelas: t })}
+            />
+
+            <View style={styles.modalBtns}>
+              <Pressable style={[styles.btn, styles.btnCancel]} onPress={() => setModalVisible(false)}>
+                <Text style={{ color: '#666' }}>Batal</Text>
+              </Pressable>
+              <Pressable style={[styles.btn, styles.btnSave]} onPress={saveMahasiswa}>
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Simpan</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -183,61 +313,51 @@ export default function MahasiswaCloudScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
   scroll: { flex: 1 },
-  content: { paddingTop: 20, paddingBottom: 32 },
+  // Jarak atas dinaikkan agar lebih nyaman dilihat
+  content: { paddingTop: 24, paddingBottom: 32 }, 
+  headerRowSpace: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 6 },
-  subtitle: { fontSize: 15, color: '#5c5c5c', marginBottom: 16 },
+  subtitle: { fontSize: 15, color: '#5c5c5c' },
+  btnAdd: { backgroundColor: '#1A237E', padding: 10, borderRadius: 10 },
   mono: { fontFamily: 'monospace', fontSize: 14, color: '#333' },
   count: { fontSize: 14, color: '#333', marginBottom: 14, fontWeight: '500' },
   muted: { fontSize: 15, color: '#666', marginTop: 8 },
-  errText: { fontSize: 15, color: '#b71c1c', marginBottom: 12, lineHeight: 22 },
+  errText: { fontSize: 15, color: '#b71c1c', marginBottom: 12 },
   centerBox: { paddingVertical: 32, alignItems: 'center', gap: 12 },
   cardList: { gap: 12 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e8e8e8',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
+  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#e8e8e8', elevation: 2 },
+  cardHeaderAction: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 10, marginBottom: 10 },
+  actionRow: { flexDirection: 'row', gap: 8 },
   cardRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   cardLabel: { fontSize: 13, color: '#6c6c6c', flex: 0.4 },
   cardValue: { fontSize: 14, color: '#1a1a1a', flex: 0.6, textAlign: 'right' },
   cardValueBold: { fontWeight: '600' },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-  },
-  headerRow: {
-    backgroundColor: '#0a7ea4',
-    borderBottomColor: '#086890',
-    paddingVertical: 12,
-  },
+  row: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#e0e0e0', paddingVertical: 14, paddingHorizontal: 6 },
+  headerRow: { backgroundColor: '#1A237E', paddingVertical: 12 },
   headerText: { color: '#fff', fontWeight: 'bold' },
   cell: { fontSize: 13, color: '#333' },
   cellNo: { width: 32, textAlign: 'center' },
   cellNim: { width: 68 },
   cellNama: { flex: 1, minWidth: 72 },
-  cellProdi: { width: 108 },
+  cellProdi: { width: 100 },
   cellKelas: { width: 48, textAlign: 'center' },
-  btnRefresh: {
-    alignSelf: 'flex-start',
-    marginTop: 20,
-    backgroundColor: '#0a7ea4',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 10,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
+  cellActionWrapper: { width: 100, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+
+  btnEdit: { backgroundColor: '#e3f2fd', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 6 },
+  btnEditText: { fontSize: 12, color: '#0a7ea4', fontWeight: '600' },
+  btnDelete: { backgroundColor: '#ffebee', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 6 },
+  btnDeleteText: { fontSize: 12, color: '#b71c1c', fontWeight: '600' },
+
+  btnRefresh: { alignSelf: 'flex-start', marginTop: 20, backgroundColor: '#1A237E', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 10 },
   btnRefreshText: { color: '#fff', fontWeight: '600', fontSize: 15 },
   btnPressed: { opacity: 0.85 },
+
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: '#fff', borderRadius: 15, padding: 20 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
+  input: { borderBottomWidth: 1, borderBottomColor: '#ddd', paddingVertical: 8, marginBottom: 15 },
+  modalBtns: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
+  btn: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
+  btnCancel: { backgroundColor: '#eee' },
+  btnSave: { backgroundColor: '#1A237E' },
 });
