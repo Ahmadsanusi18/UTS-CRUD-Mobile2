@@ -118,20 +118,33 @@ export default function MahasiswaCloudScreen() {
     }
   };
 
-  const deleteMahasiswa = (id: string) => {
+  // Menerima objek mahasiswa agar bisa mengambil properti .nama
+  const deleteMahasiswa = (item: MahasiswaRow) => {
     if (!supabase) return;
-    Alert.alert('Konfirmasi', 'Hapus mahasiswa ini?', [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          const { error: delErr } = await supabase!.from('mahasiswa').delete().eq('id', id);
-          if (delErr) Alert.alert('Error', delErr.message);
-          else loadData();
+
+    Alert.alert(
+      'Konfirmasi Hapus',
+      `Apakah anda yakin ingin menghapus data mahasiswa ${item.nama} ini?`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Hapus',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            const { error: delErr } = await supabase!.from('mahasiswa').delete().eq('id', item.id);
+            
+            if (delErr) {
+              Alert.alert('Error', delErr.message);
+              setLoading(false);
+            } else {
+              loadData();
+            }
+          },
         },
-      },
-    ]);
+      ],
+      { cancelable: true }
+    );
   };
 
   const configured = isSupabaseConfigured();
@@ -145,8 +158,6 @@ export default function MahasiswaCloudScreen() {
           { 
             paddingHorizontal: padH, 
             paddingBottom: 32 + insets.bottom,
-            // Opsional: Jika masih kurang bawah, gunakan insets.top secara manual
-            // paddingTop: 20 + insets.top 
           },
         ]}
         refreshControl={
@@ -196,7 +207,7 @@ export default function MahasiswaCloudScreen() {
                     <Pressable style={styles.btnEdit} onPress={() => openModal(m)}>
                       <Text style={styles.btnEditText}>Edit</Text>
                     </Pressable>
-                    <Pressable style={styles.btnDelete} onPress={() => deleteMahasiswa(m.id)}>
+                    <Pressable style={styles.btnDelete} onPress={() => deleteMahasiswa(m)}>
                       <Text style={styles.btnDeleteText}>Hapus</Text>
                     </Pressable>
                   </View>
@@ -246,7 +257,7 @@ export default function MahasiswaCloudScreen() {
                   <Pressable style={styles.btnEdit} onPress={() => openModal(m)}>
                     <Text style={styles.btnEditText}>Edit</Text>
                   </Pressable>
-                  <Pressable style={styles.btnDelete} onPress={() => deleteMahasiswa(m.id)}>
+                  <Pressable style={styles.btnDelete} onPress={() => deleteMahasiswa(m)}>
                     <Text style={styles.btnDeleteText}>Hapus</Text>
                   </Pressable>
                 </View>
@@ -313,7 +324,6 @@ export default function MahasiswaCloudScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
   scroll: { flex: 1 },
-  // Jarak atas dinaikkan agar lebih nyaman dilihat
   content: { paddingTop: 24, paddingBottom: 32 }, 
   headerRowSpace: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 6 },
