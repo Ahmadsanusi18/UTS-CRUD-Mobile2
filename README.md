@@ -5,17 +5,17 @@ Repo ini berisi **project praktikum** untuk mata kuliah **Pemrograman Perangkat 
 ---
 
 ## Screenshot
-| Cloud | Modal Edit| After Edit | 
+| Cloud | Modal Tambah| After Tambah | 
 |-----------|------------|------------|
-| <img src="assets/Screenshot/Cloud.jpeg" width="400"> | <img src="assets/Screenshot/Modal-Edit.jpeg" width="400"> | <img src="assets/Screenshot/After-Edit.jpeg" width="400"> | 
+| <img src="assets/Screenshot/Cloud.jpeg" width="400"> | <img src="assets/Screenshot/Modal-Tambah.jpeg" width="400"> | <img src="assets/Screenshot/After-Tambah.jpeg" width="400"> | 
 
-| Modal Tambah | After Tambah |  Konfirmasi Delete | After Delete |
+| Modal Edit | After Edit |  Konfirmasi Delete | After Delete |
 |------------|------------|------------|------------|
-| <img src="assets/Screenshot/Modal-Tambah.jpeg" width="400"> | <img src="assets/Screenshot/After-Tambah.jpeg" width="400"> | <img src="assets/Screenshot/Konfirmasi-Delete.jpeg" width="400"> | <img src="assets/Screenshot/After-Delete.jpeg" width="400"> |
+| <img src="assets/Screenshot/Modal-Edit.jpeg" width="400"> | <img src="assets/Screenshot/After-Edit.jpeg" width="400"> | <img src="assets/Screenshot/Konfirmasi-Delete.jpeg" width="400"> | <img src="assets/Screenshot/After-Delete.jpeg" width="400"> |
 
 ## Screenshot Database
 | Cloud |  After Edit | After Tambah | After Delete |
-|-----------|------------|------------|------------|------------|
+|-----------|------------|------------|------------|
 | <img src="assets/Screenshot/database/Cloud.png" width="400"> | <img src="assets/Screenshot/database/After-Edit.png" width="400"> | <img src="assets/Screenshot/database/After-Tambah.png" width="400"> | <img src="assets/Screenshot/database/After-Delete.png" width="400"> | 
 
 ## Isi Repo Ini Apa Saja?
