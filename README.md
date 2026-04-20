@@ -14,7 +14,7 @@ Repo ini berisi **project praktikum** untuk mata kuliah **Pemrograman Perangkat 
 | <img src="assets/Screenshot/Modal-Tambah.jpeg" width="400"> | <img src="assets/Screenshot/After-Tambah.jpeg" width="400"> | <img src="assets/Screenshot/Konfirmasi-Delete.jpeg" width="400"> | <img src="assets/Screenshot/After-Delete.jpeg" width="400"> |
 
 ## Screenshot Database
-| Cloud |  After Edit | Modal Tambah | After Tambah | After Delete |
+| Cloud |  After Edit | After Tambah | After Delete |
 |-----------|------------|------------|------------|------------|
 | <img src="assets/Screenshot/database/Cloud.png" width="400"> | <img src="assets/Screenshot/database/After-Edit.png" width="400"> | <img src="assets/Screenshot/database/After-Tambah.png" width="400"> | <img src="assets/Screenshot/database/After-Delete.png" width="400"> | 
 
