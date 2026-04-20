@@ -147,8 +147,8 @@ Login → buka tab **Cloud**. Kalau konfigurasi benar, muncul baris dari tabel `
 ### 1. Clone repo ini
 
 ```bash
-git clone https://github.com/edisuherlan/Belajar-EXPO-Pemrograman-Perangkat-Mobile-2.git
-cd Belajar-EXPO-Pemrograman-Perangkat-Mobile-2
+git clone https://github.com/Ahmadsanusi18/UTS-CRUD-Mobile2.git
+cd UTS-CRUD-Mobile2
 ```
 
 ### 2. Install dependency
